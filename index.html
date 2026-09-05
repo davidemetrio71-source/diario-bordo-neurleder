@@ -1,0 +1,1730 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Diário de Bordo</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap');
+
+  :root {
+    --bg: #F7F3EC;
+    --surface: #FFFFFF;
+    --surface-2: #F1E9DA;
+    --ink: #1C1712;
+    --ink-soft: #6E6455;
+    --ink-faint: #A79A85;
+    --gold: #A9692F;
+    --gold-deep: #7A4E27;
+    --gold-soft: #EEDEC4;
+    --gold-soft-ink: #6B4420;
+    --line: #E4D9C6;
+    --ok: #2E7D4F;
+    --ok-soft: #DCEEE1;
+    --nok: #B8382F;
+    --nok-soft: #F6DEDB;
+    --shadow: 0 1px 2px rgba(28,23,18,.05), 0 10px 28px -14px rgba(28,23,18,.22);
+    --radius: 16px;
+    --radius-sm: 9px;
+    --font-display: 'Fraunces', Georgia, serif;
+    --font-body: 'Inter', system-ui, -apple-system, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, 'SF Mono', monospace;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #14100B;
+      --surface: #1D1811;
+      --surface-2: #251F16;
+      --ink: #F2EBDF;
+      --ink-soft: #B7AB96;
+      --ink-faint: #7C7160;
+      --gold: #E0A85F;
+      --gold-deep: #F0C083;
+      --gold-soft: #3A2C18;
+      --gold-soft-ink: #E9C08A;
+      --line: #362C1D;
+      --ok: #5FBE85;
+      --ok-soft: #1F3327;
+      --nok: #E3776D;
+      --nok-soft: #3B211F;
+      --shadow: 0 1px 2px rgba(0,0,0,.35), 0 14px 32px -16px rgba(0,0,0,.65);
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #14100B;
+    --surface: #1D1811;
+    --surface-2: #251F16;
+    --ink: #F2EBDF;
+    --ink-soft: #B7AB96;
+    --ink-faint: #7C7160;
+    --gold: #E0A85F;
+    --gold-deep: #F0C083;
+    --gold-soft: #3A2C18;
+    --gold-soft-ink: #E9C08A;
+    --line: #362C1D;
+    --ok: #5FBE85;
+    --ok-soft: #1F3327;
+    --nok: #E3776D;
+    --nok-soft: #3B211F;
+    --shadow: 0 1px 2px rgba(0,0,0,.35), 0 14px 32px -16px rgba(0,0,0,.65);
+  }
+
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--font-body);
+    line-height: 1.45;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1, h2, h3 { font-family: var(--font-display); font-weight: 600; text-wrap: balance; margin: 0; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  a { color: inherit; }
+  button { font-family: var(--font-body); }
+  input, select, textarea {
+    font-family: var(--font-body);
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: var(--radius-sm);
+    padding: 9px 11px;
+    width: 100%;
+  }
+  input:focus, select:focus, textarea:focus, button:focus-visible, [tabindex]:focus-visible {
+    outline: 2px solid var(--gold);
+    outline-offset: 1px;
+  }
+  textarea { resize: vertical; min-height: 64px; }
+
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 22px 20px 64px; }
+
+  /* ---------- header ---------- */
+  .topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 20px; flex-wrap: wrap;
+    padding-bottom: 18px; margin-bottom: 18px;
+    border-bottom: 1px solid var(--line);
+  }
+  .brand { display: flex; align-items: center; gap: 14px; }
+  .brand img { height: 44px; width: auto; display: block; }
+  .brand .eyebrow {
+    display: block; font-size: 11px; letter-spacing: .14em; font-weight: 600;
+    color: var(--gold); text-transform: uppercase; margin-bottom: 2px;
+  }
+  .brand h1 { font-size: 22px; }
+  .banner {
+    font-size: 13px; padding: 10px 14px; border-radius: var(--radius-sm);
+    background: var(--gold-soft); color: var(--gold-soft-ink); border: 1px solid var(--gold);
+    margin-bottom: 16px; display: none;
+  }
+  .banner.show { display: block; }
+  .banner.error { background: var(--nok-soft); color: var(--nok); border-color: var(--nok); }
+
+  .app-hidden { display: none !important; }
+
+  /* ---------- auth gate ---------- */
+  .auth-gate {
+    position: fixed; inset: 0; z-index: 100; display: none;
+    align-items: center; justify-content: center;
+    background: var(--bg); padding: 20px; overflow-y: auto;
+  }
+  .auth-gate.show { display: flex; }
+  .auth-card {
+    width: 100%; max-width: 380px; background: var(--surface); border: 1px solid var(--line);
+    border-radius: var(--radius); box-shadow: var(--shadow); padding: 30px 28px; margin: auto;
+  }
+  .auth-card .brand { justify-content: center; margin-bottom: 22px; }
+  .auth-card h2 { font-size: 19px; text-align: center; margin-bottom: 4px; }
+  .auth-card .sub { text-align: center; font-size: 13px; color: var(--ink-soft); margin-bottom: 20px; }
+  .auth-field { margin-bottom: 14px; }
+  .auth-field label { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+  .auth-submit { width: 100%; justify-content: center; margin-top: 6px; }
+  .auth-switch { text-align: center; font-size: 12.5px; color: var(--ink-soft); margin-top: 16px; }
+  .auth-switch button { background: none; border: none; color: var(--gold-deep); font-weight: 700; cursor: pointer; padding: 0; font-size: inherit; }
+  .auth-error { font-size: 12.5px; color: var(--nok); margin-top: 10px; min-height: 1px; }
+  .auth-status { text-align: center; padding: 10px 4px 4px; }
+  .auth-status .icon { font-size: 34px; margin-bottom: 10px; }
+  .auth-status h2 { margin-bottom: 8px; }
+  .auth-status p { color: var(--ink-soft); font-size: 13.5px; }
+  .auth-status.rejected .icon { color: var(--nok); }
+
+  .user-chip { display: flex; align-items: center; gap: 10px; font-size: 12.5px; color: var(--ink-soft); }
+  .user-chip button {
+    background: transparent; border: 1px solid var(--line); color: var(--ink-soft);
+    padding: 5px 11px; border-radius: 999px; font-size: 11.5px; font-weight: 600; cursor: pointer;
+  }
+  .user-chip button:hover { border-color: var(--gold); color: var(--gold-deep); }
+
+  .pending-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--line); flex-wrap: wrap;
+  }
+  .pending-row:last-child { border-bottom: none; }
+  .pending-row .who { font-size: 13.5px; font-weight: 600; }
+  .pending-row .when { font-size: 11.5px; color: var(--ink-faint); font-weight: 400; }
+  .pending-actions { display: flex; gap: 8px; }
+  .btn-approve, .btn-reject { border: none; border-radius: 999px; padding: 6px 14px; font-size: 12px; font-weight: 700; cursor: pointer; }
+  .btn-approve { background: var(--ok-soft); color: var(--ok); }
+  .btn-reject { background: var(--nok-soft); color: var(--nok); }
+  .pending-empty { font-size: 13px; color: var(--ink-faint); font-style: italic; }
+
+  /* ---------- vehicle strip ---------- */
+  .vehicle-card {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 14px 18px; margin-bottom: 22px;
+    display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  .vehicle-facts { display: flex; gap: 22px; flex-wrap: wrap; }
+  .vfact .k { font-size: 10.5px; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-faint); }
+  .vfact .v { font-size: 14.5px; font-weight: 600; }
+  .vfact .v.empty { color: var(--ink-faint); font-weight: 400; font-style: italic; }
+  .btn-ghost {
+    background: transparent; border: 1px solid var(--line); color: var(--ink-soft);
+    padding: 7px 13px; border-radius: 999px; font-size: 12.5px; font-weight: 600; cursor: pointer;
+  }
+  .btn-ghost:hover { border-color: var(--gold); color: var(--gold-deep); }
+  .vehicle-edit { display: none; width: 100%; margin-top: 14px; padding-top: 14px; border-top: 1px dashed var(--line); }
+  .vehicle-edit.show { display: block; }
+  .vehicle-edit .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px,1fr)); gap: 10px; margin-bottom: 12px; }
+  .field label { display: block; font-size: 11.5px; font-weight: 600; color: var(--ink-soft); margin-bottom: 5px; }
+
+  /* ---------- panels ---------- */
+  .panel {
+    background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 26px 28px; margin-bottom: 24px;
+  }
+  .panel-head { margin-bottom: 18px; }
+  .panel-head .eyebrow { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: var(--gold); font-weight: 700; }
+  .panel-head h2 { font-size: 21px; margin-top: 3px; }
+  .panel-head p { margin: 6px 0 0; color: var(--ink-soft); font-size: 13.5px; max-width: 62ch; }
+
+  fieldset { border: none; padding: 0; margin: 0 0 24px; }
+  fieldset legend {
+    font-size: 12.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em;
+    color: var(--ink-soft); padding: 0 0 10px; width: 100%; border-bottom: 1px solid var(--line); margin-bottom: 14px;
+  }
+  .form-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; }
+  .form-grid .span2 { grid-column: span 2; }
+  .form-grid .span4 { grid-column: span 4; }
+  @media (max-width: 760px) {
+    .form-grid { grid-template-columns: repeat(2, 1fr); }
+    .form-grid .span2, .form-grid .span4 { grid-column: span 2; }
+  }
+  .field .hint { font-size: 11.5px; color: var(--ink-faint); margin-top: 4px; }
+  .kmtotal-readout { font-size: 12.5px; color: var(--ink-soft); margin-top: 4px; }
+  .kmtotal-readout b { color: var(--ink); font-family: var(--font-mono); }
+
+  /* fuel gauge */
+  .gauge-row { display: flex; gap: 28px; align-items: center; flex-wrap: wrap; }
+  .gauge-box { width: 232px; text-align: center; }
+  .gauge-box svg { width: 100%; height: auto; cursor: grab; touch-action: none; }
+  .gauge-box svg:active { cursor: grabbing; }
+  .gauge-readout { font-family: var(--font-mono); font-size: 26px; font-weight: 600; margin-top: 2px; }
+  .gauge-readout span { font-size: 14px; color: var(--ink-faint); font-family: var(--font-body); }
+  .gauge-help { font-size: 13px; color: var(--ink-soft); max-width: 34ch; }
+  .gauge-help b { color: var(--ink); }
+
+  /* checklist */
+  .checklist-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px 20px; }
+  @media (max-width: 620px) { .checklist-grid { grid-template-columns: 1fr; } }
+  .check-row {
+    display: flex; align-items: center; justify-content: space-between; gap: 12px;
+    padding: 10px 4px; border-bottom: 1px solid var(--line);
+  }
+  .check-row .label { font-size: 14.5px; font-weight: 500; }
+  .toggle-pair { display: flex; gap: 6px; }
+  .toggle-btn {
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink-soft);
+    font-size: 12px; font-weight: 700; letter-spacing: .03em; padding: 6px 13px; border-radius: 999px; cursor: pointer;
+  }
+  .toggle-btn.ok.active { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+  .toggle-btn.nok.active { background: var(--nok-soft); border-color: var(--nok); color: var(--nok); }
+  .checklist-hint { font-size: 12px; color: var(--ink-faint); margin-top: 10px; }
+  .checklist-hint.warn { color: var(--nok); font-weight: 600; }
+
+  .confirm-row { display: flex; align-items: flex-start; gap: 10px; margin-top: 4px; }
+  .confirm-row input { width: 17px; height: 17px; margin-top: 2px; accent-color: var(--gold); }
+  .confirm-row label { font-size: 13px; color: var(--ink-soft); }
+
+  .submit-row { display: flex; align-items: center; justify-content: flex-end; gap: 14px; margin-top: 22px; }
+  .form-error { font-size: 12.5px; color: var(--nok); margin-right: auto; }
+  .btn-primary {
+    background: var(--ink); color: var(--surface); border: 1px solid var(--ink);
+    font-weight: 700; font-size: 14px; padding: 12px 26px; border-radius: 999px; cursor: pointer;
+  }
+  :root:not([data-theme="light"]) .btn-primary,
+  [data-theme="dark"] .btn-primary { background: var(--gold); border-color: var(--gold); color: #1C1712; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .btn-primary { background: var(--gold); border-color: var(--gold); color: #1C1712; } }
+  .btn-primary:hover { opacity: .88; }
+  .btn-primary:disabled { opacity: .5; cursor: not-allowed; }
+
+  .toast {
+    position: fixed; bottom: 22px; left: 50%; transform: translateX(-50%) translateY(12px);
+    background: var(--ink); color: var(--bg); font-size: 14.5px; font-weight: 700;
+    padding: 14px 24px; border-radius: 999px; box-shadow: var(--shadow); opacity: 0; pointer-events: none;
+    transition: opacity .25s ease, transform .25s ease; z-index: 50; max-width: 90vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+  footer { text-align: center; font-size: 12px; color: var(--ink-faint); padding-top: 8px; }
+
+  /* photo inspection */
+  .photo-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 14px; }
+  .photo-slot {
+    position: relative; aspect-ratio: 4/3; border: 1.5px dashed var(--line); border-radius: var(--radius-sm);
+    background: var(--surface-2); display: flex; align-items: center; justify-content: center;
+    cursor: pointer; overflow: hidden; text-align: center;
+  }
+  .photo-slot:hover { border-color: var(--gold); }
+  .photo-slot img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .photo-slot .placeholder { padding: 10px; color: var(--ink-faint); font-size: 12.5px; }
+  .photo-slot .placeholder svg { display: block; margin: 0 auto 6px; opacity: .6; }
+  .photo-slot .slot-label {
+    position: absolute; top: 0; left: 0; right: 0; padding: 5px 8px; font-size: 10.5px; font-weight: 700;
+    letter-spacing: .05em; text-transform: uppercase; background: rgba(28,23,18,.62); color: #fff; text-align: left;
+  }
+  .photo-slot .retake {
+    position: absolute; bottom: 6px; right: 6px; background: rgba(28,23,18,.72); color: #fff; border: none;
+    font-size: 11px; font-weight: 600; padding: 5px 10px; border-radius: 999px;
+  }
+  .photo-slot input[type=file] { display: none; }
+
+  .damage-photos { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+  .damage-thumb { position: relative; width: 88px; height: 88px; border-radius: var(--radius-sm); overflow: hidden; border: 1px solid var(--line); }
+  .damage-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .damage-thumb button {
+    position: absolute; top: 3px; right: 3px; width: 20px; height: 20px; border-radius: 50%; border: none;
+    background: rgba(28,23,18,.75); color: #fff; font-size: 12px; line-height: 1; cursor: pointer;
+  }
+  .damage-add {
+    width: 88px; height: 88px; border-radius: var(--radius-sm); border: 1.5px dashed var(--line); background: var(--surface-2);
+    display: flex; align-items: center; justify-content: center; flex-direction: column; gap: 4px;
+    color: var(--ink-faint); font-size: 11px; cursor: pointer; text-align: center;
+  }
+  .damage-add:hover { border-color: var(--gold); color: var(--gold-deep); }
+  .damage-add input { display: none; }
+  .damage-add .plus { font-size: 22px; line-height: 1; font-weight: 300; }
+
+  /* ---- vehicle select ---- */
+  .vehicle-select-row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+  .vehicle-select-row label { font-size: 11px; text-transform: uppercase; letter-spacing: .06em; font-weight: 700; color: var(--ink-faint); }
+  .vehicle-select-row select {
+    font-family: var(--font-body); font-size: 14px; font-weight: 600; padding: 8px 14px; border-radius: var(--radius-sm);
+    border: 1px solid var(--line); background: var(--surface); color: var(--ink); min-width: 220px;
+  }
+
+  /* ---- signature pad ---- */
+  .signature-pad-wrap {
+    position: relative; border: 1.5px dashed var(--line); border-radius: var(--radius-sm);
+    background: var(--surface); overflow: hidden;
+  }
+  .signature-pad-wrap canvas {
+    display: block; width: 100%; height: 180px; touch-action: none; cursor: crosshair;
+  }
+  .signature-clear {
+    position: absolute; top: 8px; right: 8px; padding: 5px 12px; font-size: 11.5px;
+    background: var(--surface); box-shadow: var(--shadow);
+  }
+
+</style>
+</head>
+<body>
+
+<!--
+  ================================================================
+  CONFIGURAÇÃO DO FIREBASE — leia antes de publicar
+  ================================================================
+  1. Crie um projeto gratuito em https://console.firebase.google.com
+  2. Ative o "Firestore Database" (modo produção) para esse projeto.
+  3. Em Authentication > Sign-in method, ative o provedor "E-mail/senha".
+  4. Em Configurações do projeto > Seus apps > ícone Web (</>), registre
+     um app e copie o objeto de configuração que aparece.
+  5. Cole os valores copiados no lugar de "COLOQUE_AQUI" logo abaixo.
+  6. Publique as regras do Firestore fornecidas junto com este arquivo
+     (Firestore Database > Regras).
+  7. Publique este arquivo HTML (por exemplo, arrastando-o para o
+     Netlify Drop: https://app.netlify.com/drop) e deixe o site "Public"
+     (Project configuration > General > Visitor access) para a equipe
+     acessar sem precisar de conta na Netlify.
+  8. Acesso ao app agora exige login: quem se cadastrar com e-mail
+     @neurleder.com entra na hora; qualquer outro domínio fica
+     "pendente" até um dos administradores (ver ADMIN_EMAILS mais
+     abaixo no código) aprovar pelo próprio painel do app.
+  ================================================================
+-->
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script>
+  var firebaseConfig = {
+    apiKey: "AIzaSyBuzYBNJ86zqbLcS2M6F7Yu3kag3yWAIzk",
+    authDomain: "neur-leder-frota.firebaseapp.com",
+    projectId: "neur-leder-frota",
+    storageBucket: "neur-leder-frota.firebasestorage.app",
+    messagingSenderId: "666233410312",
+    appId: "1:666233410312:web:39a2576597f704f8c892bd"
+  };
+</script>
+
+<!--
+  ================================================================
+  REGRAS DO FIRESTORE — cole em Firestore Database > Regras
+  ================================================================
+  Agora que o site é público, o acesso é controlado por login
+  (Firebase Authentication) em vez de pelo link ser "secreto". Só
+  usuários autenticados e com status "approved" no documento
+  users/{uid} conseguem ler/gravar os dados de veículos, viagens e
+  vistorias. Os dois e-mails abaixo são administradores e podem
+  aprovar/recusar pedidos de acesso de fora do domínio @neurleder.com.
+
+  rules_version = '2';
+  service cloud.firestore {
+    match /databases/{database}/documents {
+
+      function isSignedIn() { return request.auth != null; }
+      function isAdmin() {
+        return isSignedIn() &&
+          (request.auth.token.email.lower() == 'davi.lima@neurleder.com' ||
+           request.auth.token.email.lower() == 'diane.ribeiro@neurleder.com');
+      }
+      function isCompanyEmail(email) {
+        return email.matches('.*@neurleder[.]com$');
+      }
+      function isApprovedUser() {
+        return isSignedIn() &&
+          exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.status == 'approved';
+      }
+
+      match /users/{userId} {
+        allow read: if isSignedIn() && (isAdmin() || request.auth.uid == userId);
+        allow create: if isSignedIn() && request.auth.uid == userId &&
+          (
+            (isCompanyEmail(request.resource.data.email) && request.resource.data.status == 'approved') ||
+            (!isCompanyEmail(request.resource.data.email) && request.resource.data.status == 'pending')
+          );
+        allow update: if isAdmin();
+        allow delete: if isAdmin();
+      }
+
+      match /{document=**} {
+        allow read, write: if isApprovedUser();
+      }
+    }
+  }
+  ================================================================
+-->
+
+<div class="auth-gate" id="authGate">
+  <div class="auth-card">
+    <div class="brand">
+      <div>
+        <span class="eyebrow">Neur Leder</span>
+        <h1 style="font-size:20px;">Diário de Bordo</h1>
+      </div>
+    </div>
+
+    <div id="authViewLogin">
+      <h2>Entrar</h2>
+      <div class="sub">Acesso restrito à equipe autorizada.</div>
+      <form id="loginForm">
+        <div class="auth-field">
+          <label for="loginEmail">E-mail</label>
+          <input type="email" id="loginEmail" required autocomplete="username">
+        </div>
+        <div class="auth-field">
+          <label for="loginPassword">Senha</label>
+          <input type="password" id="loginPassword" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-primary auth-submit">Entrar</button>
+        <div class="auth-error" id="loginError"></div>
+      </form>
+      <div class="auth-switch">Ainda não tem conta? <button type="button" id="goSignup">Criar conta</button></div>
+    </div>
+
+    <div id="authViewSignup" style="display:none">
+      <h2>Criar conta</h2>
+      <div class="sub">E-mails @neurleder.com entram na hora. Outros domínios ficam pendentes até um administrador aprovar.</div>
+      <form id="signupForm">
+        <div class="auth-field">
+          <label for="signupEmail">E-mail</label>
+          <input type="email" id="signupEmail" required autocomplete="username">
+        </div>
+        <div class="auth-field">
+          <label for="signupPassword">Senha</label>
+          <input type="password" id="signupPassword" required minlength="6" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn-primary auth-submit">Criar conta</button>
+        <div class="auth-error" id="signupError"></div>
+      </form>
+      <div class="auth-switch">Já tem conta? <button type="button" id="goLogin">Entrar</button></div>
+    </div>
+
+    <div id="authViewStatus" style="display:none">
+      <div class="auth-status" id="authStatusBox">
+        <div class="icon" id="authStatusIcon">⏳</div>
+        <h2 id="authStatusTitle">Acesso pendente</h2>
+        <p id="authStatusMsg">Seu cadastro foi recebido e está aguardando aprovação de um administrador.</p>
+      </div>
+      <button type="button" class="btn-ghost auth-submit" id="authLogoutBtn" style="margin-top:18px;">Sair</button>
+    </div>
+  </div>
+</div>
+
+<div class="wrap app-hidden" id="appRoot">
+  <header class="topbar">
+    <div class="brand">
+      <img src="data:image/png;base64,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" alt="Neur Leder">
+      <div>
+        <span class="eyebrow">Neur Leder</span>
+        <h1>Diário de Bordo Digital</h1>
+      </div>
+    </div>
+    <div class="user-chip" id="userChip" style="display:none">
+      <span id="userChipEmail"></span>
+      <button type="button" id="logoutBtn">Sair</button>
+    </div>
+  </header>
+
+  <div id="banner" class="banner"></div>
+
+  <div class="panel" id="adminPanel" style="display:none">
+    <div class="panel-head">
+      <span class="eyebrow">Administração</span>
+      <h2>Aprovações pendentes</h2>
+      <p>Pessoas de fora do domínio @neurleder.com que pediram acesso ao Diário de Bordo.</p>
+    </div>
+    <div id="pendingList"></div>
+  </div>
+
+  <div class="vehicle-card">
+    <div class="vehicle-select-row">
+      <label for="vehicleSelect">Veículo</label>
+      <select id="vehicleSelect"></select>
+    </div>
+    <div class="vehicle-facts" id="vehicleFacts"></div>
+    <button class="btn-ghost" id="vehicleEditToggle" type="button">Editar dados do veículo</button>
+    <form class="vehicle-edit" id="vehicleEditForm">
+      <div class="grid">
+        <div class="field"><label for="vPlate">Placa</label><input id="vPlate" type="text" placeholder="AAA-0A00"></div>
+        <div class="field"><label for="vModel">Modelo / Marca</label><input id="vModel" type="text" placeholder="Ex.: Fiat Strada"></div>
+        <div class="field"><label for="vYear">Ano</label><input id="vYear" type="text" placeholder="2024"></div>
+        <div class="field"><label for="vColor">Cor</label><input id="vColor" type="text" placeholder="Branco"></div>
+      </div>
+      <div style="display:flex; gap:10px; justify-content:flex-end;">
+        <button type="button" class="btn-ghost" id="vehicleCancel">Cancelar</button>
+        <button type="submit" class="btn-primary" style="padding:8px 20px; font-size:13px;">Salvar dados</button>
+      </div>
+    </form>
+  </div>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div class="eyebrow">Vistoria fotográfica</div>
+      <h2>Registrar vistoria do veículo</h2>
+      <p>Faça isso primeiro, ainda do lado de fora do veículo: tire uma foto de cada lado e do painel (odômetro/combustível). Em caso de avaria, descreva e anexe quantas fotos forem necessárias.</p>
+    </div>
+
+    <form id="inspForm">
+      <fieldset>
+        <legend>Dados da vistoria</legend>
+        <div class="form-grid">
+          <div class="field span2">
+            <label for="iResponsible">Responsável *</label>
+            <input id="iResponsible" type="text" required placeholder="Nome de quem está fazendo a vistoria">
+          </div>
+          <div class="field">
+            <label for="iDate">Data *</label>
+            <input id="iDate" type="date" required>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Fotos do veículo *</legend>
+        <div class="photo-grid" id="photoGrid"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Avarias</legend>
+        <div class="form-grid">
+          <div class="field span4">
+            <label for="iDamageNote">Observações de avaria</label>
+            <textarea id="iDamageNote" placeholder="Descreva riscos, amassados ou outros danos encontrados — deixe em branco se não houver avaria."></textarea>
+          </div>
+        </div>
+        <div class="damage-photos" id="damagePhotos"></div>
+      </fieldset>
+
+      <div class="submit-row">
+        <div class="form-error" id="inspFormError"></div>
+        <button type="submit" class="btn-primary" id="inspSubmitBtn">Registrar vistoria</button>
+      </div>
+    </form>
+  </section>
+
+  <section class="panel">
+    <div class="panel-head">
+      <div class="eyebrow">Novo registro</div>
+      <h2>Registrar viagem</h2>
+      <p>Preencha depois de já estar dentro do veículo, antes de sair. Todos os campos marcados com * são obrigatórios.</p>
+    </div>
+
+    <form id="tripForm">
+      <fieldset>
+        <legend>Dados da viagem</legend>
+        <div class="form-grid">
+          <div class="field span2">
+            <label for="fEmployee">Registrado por *</label>
+            <input id="fEmployee" type="text" required placeholder="Nome de quem está dirigindo">
+          </div>
+          <div class="field">
+            <label for="fDate">Data *</label>
+            <input id="fDate" type="date" required>
+          </div>
+          <div class="field">
+            <label for="fPurpose">Finalidade da viagem</label>
+            <input id="fPurpose" type="text" placeholder="Ex.: entrega, visita a cliente...">
+          </div>
+
+          <div class="field">
+            <label for="fTimeOut">Horário de saída</label>
+            <input id="fTimeOut" type="time">
+          </div>
+          <div class="field">
+            <label for="fTimeIn">Horário de chegada</label>
+            <input id="fTimeIn" type="time">
+          </div>
+          <div class="field span2">
+            <label for="fOrigin">Origem *</label>
+            <input id="fOrigin" type="text" required placeholder="Local de saída">
+          </div>
+
+          <div class="field span2">
+            <label for="fDestination">Destino *</label>
+            <input id="fDestination" type="text" required placeholder="Local de chegada">
+          </div>
+          <div class="field">
+            <label for="fKmStart">KM saída *</label>
+            <input id="fKmStart" type="number" inputmode="numeric" min="0" required placeholder="0">
+          </div>
+          <div class="field">
+            <label for="fKmEnd">KM chegada</label>
+            <input id="fKmEnd" type="number" inputmode="numeric" min="0" placeholder="0">
+          </div>
+          <div class="field span4">
+            <div class="kmtotal-readout">KM percorrido: <b id="kmTotalReadout">—</b></div>
+          </div>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Nível do tanque (saída)</legend>
+        <div class="gauge-row">
+          <div class="gauge-box">
+            <div id="gaugeMount"></div>
+            <div class="gauge-readout"><span id="gaugeValue">50</span><span>%</span></div>
+          </div>
+          <p class="gauge-help">Arraste o ponteiro, clique no mostrador ou use as setas do teclado para marcar o nível — igual ao painel do veículo. <b>E</b> = vazio, <b>F</b> = cheio.</p>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Checklist de saída</legend>
+        <div class="checklist-grid" id="checklistGrid"></div>
+        <div class="checklist-hint" id="checklistHint">Marque OK ou NOK para todos os itens.</div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Observações e assinatura</legend>
+        <div class="form-grid">
+          <div class="field span4">
+            <label for="fNotes">Observações</label>
+            <textarea id="fNotes" placeholder="Avarias, ocorrências, multas ou qualquer item marcado como NOK — descreva aqui."></textarea>
+          </div>
+          <div class="field span4">
+            <label>Assinatura digital *</label>
+            <div class="signature-pad-wrap">
+              <canvas id="fSignaturePad"></canvas>
+              <button type="button" class="btn-ghost signature-clear" id="fSignatureClear">Limpar assinatura</button>
+            </div>
+            <div class="hint">Assine com o dedo (no celular) ou com o mouse, dentro da área acima.</div>
+            <div class="form-error" id="signatureError"></div>
+          </div>
+        </div>
+        <div class="confirm-row">
+          <input type="checkbox" id="fConfirm" required>
+          <label for="fConfirm">Confirmo que as informações acima são verdadeiras e que o checklist foi realizado pessoalmente antes da saída.</label>
+        </div>
+      </fieldset>
+
+      <div class="submit-row">
+        <div class="form-error" id="formError"></div>
+        <button type="submit" class="btn-primary" id="submitBtn">Registrar viagem</button>
+      </div>
+    </form>
+  </section>
+
+  <footer>Diário de Bordo Digital — Neur Leder · registros salvos automaticamente e compartilhados com a equipe</footer>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  var CHECKLIST_ITEMS = [
+    { key: "pneus", label: "Pneus" },
+    { key: "lampadas", label: "Lâmpadas" },
+    { key: "oleo", label: "Óleo" },
+    { key: "estepe", label: "Estepe" },
+    { key: "freios", label: "Freios" },
+    { key: "documentos", label: "Documentos" }
+  ];
+
+  var PHOTO_ANGLES = [
+    { key: "front", label: "Frente" },
+    { key: "rear", label: "Traseira" },
+    { key: "left", label: "Lateral esquerda" },
+    { key: "right", label: "Lateral direita" },
+    { key: "panel", label: "Painel" }
+  ];
+
+  function $(sel, root) { return (root || document).querySelector(sel); }
+  function $all(sel, root) { return Array.prototype.slice.call((root || document).querySelectorAll(sel)); }
+  function esc(s) {
+    return String(s == null ? "" : s).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function pad2(n) { return String(n).padStart(2, "0"); }
+  function todayISO() {
+    var d = new Date();
+    return d.getFullYear() + "-" + pad2(d.getMonth() + 1) + "-" + pad2(d.getDate());
+  }
+  function fmtDateBR(iso) {
+    if (!iso) return "—";
+    var p = iso.split("-");
+    if (p.length !== 3) return iso;
+    return p[2] + "/" + p[1] + "/" + p[0];
+  }
+  function fmtDateTimeBR(iso) {
+    if (!iso) return "—";
+    try { return new Date(iso).toLocaleString("pt-BR"); } catch (e) { return iso; }
+  }
+
+  /* ============ Image helpers ============ */
+  function loadImageFromFile(file) {
+    return new Promise(function (resolve, reject) {
+      var reader = new FileReader();
+      reader.onload = function () {
+        var img = new Image();
+        img.onload = function () { resolve(img); };
+        img.onerror = function () { reject(new Error("Não foi possível ler a imagem.")); };
+        img.src = reader.result;
+      };
+      reader.onerror = function () { reject(new Error("Não foi possível ler o arquivo.")); };
+      reader.readAsDataURL(file);
+    });
+  }
+
+  function compressImage(file, maxDim, targetChars) {
+    return loadImageFromFile(file).then(function (img) {
+      var cw = img.width, ch = img.height;
+      var scale = Math.min(1, maxDim / Math.max(cw, ch));
+      cw = Math.max(1, Math.round(cw * scale));
+      ch = Math.max(1, Math.round(ch * scale));
+      var canvas = document.createElement("canvas");
+      var ctx = canvas.getContext("2d");
+      var quality = 0.85;
+      var dataUrl;
+      var safety = 0;
+      do {
+        canvas.width = cw;
+        canvas.height = ch;
+        ctx.clearRect(0, 0, cw, ch);
+        ctx.drawImage(img, 0, 0, cw, ch);
+        dataUrl = canvas.toDataURL("image/jpeg", quality);
+        if (dataUrl.length <= targetChars) break;
+        if (quality > 0.4) { quality -= 0.12; }
+        else { cw = Math.round(cw * 0.82); ch = Math.round(ch * 0.82); }
+        safety++;
+      } while (safety < 14 && (cw > 60 && ch > 60));
+      return dataUrl;
+    });
+  }
+
+  function makeThumb(dataUrl, maxDim) {
+    return new Promise(function (resolve) {
+      if (!dataUrl) { resolve(null); return; }
+      var img = new Image();
+      img.onload = function () {
+        var scale = Math.min(1, maxDim / Math.max(img.width, img.height));
+        var cw = Math.max(1, Math.round(img.width * scale)), ch = Math.max(1, Math.round(img.height * scale));
+        var canvas = document.createElement("canvas");
+        canvas.width = cw; canvas.height = ch;
+        canvas.getContext("2d").drawImage(img, 0, 0, cw, ch);
+        resolve(canvas.toDataURL("image/jpeg", 0.7));
+      };
+      img.onerror = function () { resolve(null); };
+      img.src = dataUrl;
+    });
+  }
+
+  /* ============ AI check: is this photo actually a vehicle? ============
+     Uses TensorFlow.js + the COCO-SSD object detector (loaded from a CDN,
+     free, no API key) to look for a car/truck/bus/motorcycle in the photo
+     before accepting it for the 5 vehicle-angle slots. Loaded lazily, only
+     once the person adds their first inspection photo, so it never slows
+     down opening the app. If the model can't load (e.g. no internet to the
+     CDN), the photo is accepted anyway rather than blocking the person. */
+  var VEHICLE_CLASSES = ["car", "truck", "bus", "motorcycle"];
+  var VEHICLE_MIN_SCORE = 0.4;
+  var cocoModelPromise = null;
+
+  function loadScriptOnce(src) {
+    return new Promise(function (resolve, reject) {
+      var existing = document.querySelector('script[src="' + src + '"]');
+      if (existing) {
+        if (existing.getAttribute("data-loaded") === "1") { resolve(); return; }
+        existing.addEventListener("load", function () { resolve(); });
+        existing.addEventListener("error", function () { reject(new Error("Falha ao carregar " + src)); });
+        return;
+      }
+      var s = document.createElement("script");
+      s.src = src;
+      s.onload = function () { s.setAttribute("data-loaded", "1"); resolve(); };
+      s.onerror = function () { reject(new Error("Falha ao carregar " + src)); };
+      document.head.appendChild(s);
+    });
+  }
+
+  function loadCocoModel() {
+    if (cocoModelPromise) return cocoModelPromise;
+    cocoModelPromise = loadScriptOnce("https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@4.20.0/dist/tf.min.js")
+      .then(function () { return loadScriptOnce("https://cdn.jsdelivr.net/npm/@tensorflow-models/coco-ssd@2.2.3/dist/coco-ssd.min.js"); })
+      .then(function () { return cocoSsd.load({ base: "lite_mobilenet_v2" }); })
+      .catch(function (e) { cocoModelPromise = null; throw e; }); // allow retrying on the next photo
+    return cocoModelPromise;
+  }
+
+  function looksLikeVehicle(imgEl) {
+    return loadCocoModel().then(function (model) {
+      return model.detect(imgEl);
+    }).then(function (predictions) {
+      return predictions.some(function (p) {
+        return VEHICLE_CLASSES.indexOf(p.class) !== -1 && p.score >= VEHICLE_MIN_SCORE;
+      });
+    });
+  }
+
+  var toastTimer = null;
+  function toast(msg) {
+    var el = $("#toast");
+    el.textContent = msg;
+    el.classList.add("show");
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.classList.remove("show"); }, 4200);
+  }
+
+  function showBanner(msg, isError) {
+    var b = $("#banner");
+    b.textContent = msg;
+    b.classList.add("show");
+    b.classList.toggle("error", !!isError);
+  }
+  function hideBanner() { $("#banner").classList.remove("show"); }
+
+  /* ============ Fuel gauge ============ */
+  function createGauge(mount, opts) {
+    var W = 240, H = 160, cx = 120, cy = 128, R = 88;
+    var value = opts.value || 50;
+    var onChange = opts.onChange || function () {};
+
+    var svgNS = "http://www.w3.org/2000/svg";
+    var svg = document.createElementNS(svgNS, "svg");
+    svg.setAttribute("viewBox", "0 0 " + W + " " + H);
+    svg.setAttribute("role", "slider");
+    svg.setAttribute("aria-label", "Nível do tanque");
+    svg.setAttribute("aria-valuemin", "0");
+    svg.setAttribute("aria-valuemax", "100");
+    svg.setAttribute("tabindex", "0");
+    mount.appendChild(svg);
+
+    function polar(r, angleDeg) {
+      var a = (angleDeg - 90) * Math.PI / 180;
+      return { x: cx + r * Math.cos(a), y: cy + r * Math.sin(a) };
+    }
+    function arcPath(r, a0, a1) {
+      var p0 = polar(r, a0), p1 = polar(r, a1);
+      var large = (a1 - a0) > 180 ? 1 : 0;
+      return "M " + p0.x + " " + p0.y + " A " + r + " " + r + " 0 " + large + " 1 " + p1.x + " " + p1.y;
+    }
+    function pctToAngle(pct) { return -90 + (pct / 100) * 180; }
+
+    function el(tag, attrs) {
+      var e = document.createElementNS(svgNS, tag);
+      for (var k in attrs) e.setAttribute(k, attrs[k]);
+      return e;
+    }
+
+    // arcs: red zone 0-25%, ink zone 25-100%
+    var arcRed = el("path", { d: arcPath(R, -90, -45), stroke: "var(--nok)", "stroke-width": 10, fill: "none", "stroke-linecap": "butt" });
+    var arcInk = el("path", { d: arcPath(R, -45, 90), stroke: "var(--ink)", "stroke-width": 10, fill: "none", "stroke-linecap": "butt" });
+    svg.appendChild(arcRed);
+    svg.appendChild(arcInk);
+
+    // ticks
+    var majors = [0, 25, 50, 75, 100];
+    var minors = [12.5, 37.5, 62.5, 87.5];
+    majors.forEach(function (pct) {
+      var a = pctToAngle(pct);
+      var p0 = polar(R + 5, a), p1 = polar(R - 12, a);
+      var isRed = pct <= 25 && pct !== 50;
+      svg.appendChild(el("line", { x1: p0.x, y1: p0.y, x2: p1.x, y2: p1.y, stroke: isRed ? "var(--nok)" : "var(--ink)", "stroke-width": 3.2, "stroke-linecap": "round" }));
+    });
+    minors.forEach(function (pct) {
+      var a = pctToAngle(pct);
+      var p0 = polar(R + 2, a), p1 = polar(R - 6, a);
+      var isRed = pct < 25;
+      svg.appendChild(el("line", { x1: p0.x, y1: p0.y, x2: p1.x, y2: p1.y, stroke: isRed ? "var(--nok)" : "var(--ink-faint)", "stroke-width": 1.8, "stroke-linecap": "round" }));
+    });
+
+    // E / F labels
+    var pE = polar(R + 18, -90), pF = polar(R + 18, 90);
+    var tE = el("text", { x: pE.x, y: pE.y + 5, "text-anchor": "middle", "font-size": "17", "font-weight": "800", fill: "var(--ink)", "font-family": "var(--font-body)" });
+    tE.textContent = "E";
+    var tF = el("text", { x: pF.x, y: pF.y + 5, "text-anchor": "middle", "font-size": "17", "font-weight": "800", fill: "var(--ink)", "font-family": "var(--font-body)" });
+    tF.textContent = "F";
+    svg.appendChild(tE);
+    svg.appendChild(tF);
+
+    // fuel icon
+    var iconG = el("g", { opacity: "0.55" });
+    iconG.appendChild(el("rect", { x: cx - 9, y: cy - 62, width: 18, height: 26, rx: 2, fill: "var(--ink-soft)" }));
+    iconG.appendChild(el("rect", { x: cx - 11, y: cy - 66, width: 22, height: 4, rx: 1.5, fill: "var(--ink-soft)" }));
+    iconG.appendChild(el("rect", { x: cx - 5, y: cy - 55, width: 9, height: 8, fill: "var(--surface)" }));
+    svg.appendChild(iconG);
+
+    // needle
+    var needle = el("line", { x1: cx, y1: cy, x2: cx, y2: cy - (R - 20), stroke: "var(--gold)", "stroke-width": 4, "stroke-linecap": "round" });
+    svg.appendChild(needle);
+    var pivot = el("circle", { cx: cx, cy: cy, r: 7, fill: "var(--gold)" });
+    svg.appendChild(pivot);
+
+    function render() {
+      var a = pctToAngle(value);
+      var tip = polar(R - 20, a);
+      needle.setAttribute("x2", tip.x);
+      needle.setAttribute("y2", tip.y);
+      svg.setAttribute("aria-valuenow", Math.round(value));
+    }
+
+    function setValue(v, silent) {
+      value = Math.max(0, Math.min(100, Math.round(v)));
+      render();
+      if (!silent) onChange(value);
+    }
+
+    function angleFromPoint(x, y) {
+      var dx = x - cx, dy = y - cy;
+      var phi = Math.atan2(dy, dx);
+      var angleDeg = phi * 180 / Math.PI + 90;
+      if (angleDeg > 180) angleDeg -= 360;
+      if (angleDeg < -90) angleDeg = -90;
+      if (angleDeg > 90) angleDeg = 90;
+      return angleDeg;
+    }
+    function pointFromEvent(evt) {
+      var rect = svg.getBoundingClientRect();
+      var cx0 = evt.touches ? evt.touches[0].clientX : evt.clientX;
+      var cy0 = evt.touches ? evt.touches[0].clientY : evt.clientY;
+      return { x: (cx0 - rect.left) * (W / rect.width), y: (cy0 - rect.top) * (H / rect.height) };
+    }
+
+    var dragging = false;
+    function onDown(evt) {
+      dragging = true;
+      svg.setPointerCapture && evt.pointerId != null && svg.setPointerCapture(evt.pointerId);
+      onMove(evt);
+      evt.preventDefault();
+    }
+    function onMove(evt) {
+      if (!dragging) return;
+      var p = pointFromEvent(evt);
+      var a = angleFromPoint(p.x, p.y);
+      setValue(((a + 90) / 180) * 100);
+      evt.preventDefault();
+    }
+    function onUp() { dragging = false; }
+
+    svg.addEventListener("pointerdown", onDown);
+    svg.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+    svg.addEventListener("keydown", function (evt) {
+      if (evt.key === "ArrowRight" || evt.key === "ArrowUp") { setValue(value + 5); evt.preventDefault(); }
+      else if (evt.key === "ArrowLeft" || evt.key === "ArrowDown") { setValue(value - 5); evt.preventDefault(); }
+      else if (evt.key === "Home") { setValue(0); evt.preventDefault(); }
+      else if (evt.key === "End") { setValue(100); evt.preventDefault(); }
+    });
+
+    render();
+    return { setValue: setValue, getValue: function () { return value; } };
+  }
+
+  /* ============ App state ============ */
+  var FIREBASE_CONFIGURED = !!(firebaseConfig && firebaseConfig.apiKey && firebaseConfig.apiKey.indexOf("COLOQUE_AQUI") === -1);
+  var db = null;
+  if (FIREBASE_CONFIGURED) {
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.firestore();
+    } catch (e) {
+      console.error("Falha ao iniciar o Firebase:", e);
+      db = null;
+    }
+  }
+
+  /* ============ Acesso (login / aprovação) ============ */
+  var COMPANY_DOMAIN = "@neurleder.com";
+  var ADMIN_EMAILS = ["davi.lima@neurleder.com", "diane.ribeiro@neurleder.com"];
+  var appStarted = false;
+  var currentAuthUser = null;
+  var currentUserDoc = null;
+  var userDocUnsub = null;
+  var pendingUnsub = null;
+
+  function isCompanyEmail(email) {
+    email = (email || "").toLowerCase();
+    return email.slice(-COMPANY_DOMAIN.length) === COMPANY_DOMAIN;
+  }
+  function isAdminEmail(email) {
+    return ADMIN_EMAILS.indexOf((email || "").toLowerCase()) !== -1;
+  }
+
+  function showAuthView(view) {
+    $("#authViewLogin").style.display = view === "login" ? "" : "none";
+    $("#authViewSignup").style.display = view === "signup" ? "" : "none";
+    $("#authViewStatus").style.display = view === "status" ? "" : "none";
+    $("#authGate").classList.add("show");
+  }
+
+  function showStatusView(status) {
+    var icon = $("#authStatusIcon"), title = $("#authStatusTitle"),
+      msg = $("#authStatusMsg"), box = $("#authStatusBox");
+    box.classList.remove("rejected");
+    if (status === "rejected") {
+      box.classList.add("rejected");
+      icon.textContent = "✕";
+      title.textContent = "Acesso não autorizado";
+      msg.textContent = "Seu pedido de acesso foi recusado. Fale com um administrador se acha que isso é um engano.";
+    } else {
+      icon.textContent = "⏳";
+      title.textContent = "Acesso pendente";
+      msg.textContent = "Seu cadastro foi recebido e está aguardando aprovação de um administrador da Neur Leder.";
+    }
+    showAuthView("status");
+  }
+
+  function translateAuthError(e) {
+    var code = (e && e.code) || "";
+    if (code === "auth/email-already-in-use") return "Este e-mail já tem uma conta. Tente entrar.";
+    if (code === "auth/invalid-email") return "E-mail inválido.";
+    if (code === "auth/weak-password") return "A senha precisa ter pelo menos 6 caracteres.";
+    if (code === "auth/wrong-password" || code === "auth/user-not-found" || code === "auth/invalid-credential") return "E-mail ou senha incorretos.";
+    if (code === "auth/too-many-requests") return "Muitas tentativas seguidas. Aguarde um pouco e tente de novo.";
+    return "Erro: " + ((e && e.message) || "tente novamente.");
+  }
+
+  function wireAuthGate() {
+    $("#goSignup").addEventListener("click", function () { showAuthView("signup"); });
+    $("#goLogin").addEventListener("click", function () { showAuthView("login"); });
+
+    $("#loginForm").addEventListener("submit", function (evt) {
+      evt.preventDefault();
+      var email = $("#loginEmail").value.trim();
+      var pass = $("#loginPassword").value;
+      var errEl = $("#loginError");
+      errEl.textContent = "";
+      firebase.auth().signInWithEmailAndPassword(email, pass).catch(function (e) {
+        errEl.textContent = translateAuthError(e);
+      });
+    });
+
+    $("#signupForm").addEventListener("submit", function (evt) {
+      evt.preventDefault();
+      var email = $("#signupEmail").value.trim();
+      var pass = $("#signupPassword").value;
+      var errEl = $("#signupError");
+      errEl.textContent = "";
+      var approved = isCompanyEmail(email);
+      firebase.auth().createUserWithEmailAndPassword(email, pass).then(function (cred) {
+        return db.collection("users").doc(cred.user.uid).set({
+          email: email.toLowerCase(),
+          status: approved ? "approved" : "pending",
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+      }).catch(function (e) {
+        errEl.textContent = translateAuthError(e);
+      });
+    });
+
+    $("#logoutBtn").addEventListener("click", function () { firebase.auth().signOut(); });
+    $("#authLogoutBtn").addEventListener("click", function () { firebase.auth().signOut(); });
+  }
+
+  function startAdminPendingWatch() {
+    if (pendingUnsub) return;
+    pendingUnsub = db.collection("users").where("status", "==", "pending").onSnapshot(function (snap) {
+      var list = $("#pendingList");
+      if (snap.empty) {
+        list.innerHTML = '<div class="pending-empty">Nenhum pedido pendente no momento.</div>';
+        return;
+      }
+      list.innerHTML = "";
+      snap.docs.forEach(function (d) {
+        var data = d.data();
+        var when = "";
+        if (data.createdAt && data.createdAt.toDate) {
+          when = data.createdAt.toDate().toLocaleString("pt-BR");
+        }
+        var row = document.createElement("div");
+        row.className = "pending-row";
+        row.innerHTML =
+          '<div class="who">' + esc(data.email || "(sem e-mail)") +
+          (when ? '<div class="when">' + esc(when) + '</div>' : '') + '</div>' +
+          '<div class="pending-actions">' +
+          '<button type="button" class="btn-approve" data-id="' + d.id + '">Aprovar</button>' +
+          '<button type="button" class="btn-reject" data-id="' + d.id + '">Recusar</button>' +
+          '</div>';
+        list.appendChild(row);
+      });
+      list.querySelectorAll(".btn-approve").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          db.collection("users").doc(btn.getAttribute("data-id")).update({ status: "approved" });
+        });
+      });
+      list.querySelectorAll(".btn-reject").forEach(function (btn) {
+        btn.addEventListener("click", function () {
+          db.collection("users").doc(btn.getAttribute("data-id")).update({ status: "rejected" });
+        });
+      });
+    }, function (e) {
+      console.error("Falha ao observar pendências:", e);
+    });
+  }
+
+  function stopAdminPendingWatch() {
+    if (pendingUnsub) { pendingUnsub(); pendingUnsub = null; }
+  }
+
+  function initAuthGate() {
+    if (!FIREBASE_CONFIGURED || !db) {
+      $("#appRoot").classList.remove("app-hidden");
+      showBanner("Este Diário ainda não foi configurado. Preencha o firebaseConfig no topo do arquivo HTML com os dados do seu projeto Firebase.", true);
+      return;
+    }
+    wireAuthGate();
+    firebase.auth().onAuthStateChanged(function (user) {
+      currentAuthUser = user;
+      if (userDocUnsub) { userDocUnsub(); userDocUnsub = null; }
+      stopAdminPendingWatch();
+
+      if (!user) {
+        $("#appRoot").classList.add("app-hidden");
+        $("#userChip").style.display = "none";
+        $("#adminPanel").style.display = "none";
+        showAuthView("login");
+        return;
+      }
+
+      userDocUnsub = db.collection("users").doc(user.uid).onSnapshot(function (doc) {
+        var data = doc.exists ? doc.data() : null;
+        currentUserDoc = data;
+        if (!data) { showStatusView("pending"); return; }
+
+        if (data.status === "approved") {
+          $("#authGate").classList.remove("show");
+          $("#appRoot").classList.remove("app-hidden");
+          $("#userChip").style.display = "";
+          $("#userChipEmail").textContent = data.email || user.email || "";
+          if (isAdminEmail(data.email || user.email)) {
+            $("#adminPanel").style.display = "";
+            startAdminPendingWatch();
+          } else {
+            $("#adminPanel").style.display = "none";
+            stopAdminPendingWatch();
+          }
+          startApp();
+        } else if (data.status === "rejected") {
+          showStatusView("rejected");
+        } else {
+          showStatusView("pending");
+        }
+      }, function (e) {
+        console.error("Falha ao verificar acesso:", e);
+        showStatusView("pending");
+      });
+    });
+  }
+
+  var DEFAULT_VEHICLES = [
+    { id: "kwid", plate: "CSM9A12", model: "Renault Kwid Life 10MT", year: "2020/2021", color: "Prata" },
+    { id: "toro", plate: "GEU2J15", model: "Fiat Toro Freed Turbo AT6", year: "2023", color: "Preta" }
+  ];
+
+  var vehicles = {};
+  var vehiclesLoaded = false;
+  var currentVehicleId = null;
+
+  var checklistState = {};
+  var gauge = null;
+  var signaturePad = null;
+
+  var inspSlots = {};
+  var inspDamage = [];
+
+  function buildChecklistUI() {
+    var grid = $("#checklistGrid");
+    grid.innerHTML = "";
+    CHECKLIST_ITEMS.forEach(function (item) {
+      checklistState[item.key] = null;
+      var row = document.createElement("div");
+      row.className = "check-row";
+      row.innerHTML =
+        '<span class="label">' + esc(item.label) + '</span>' +
+        '<span class="toggle-pair">' +
+        '<button type="button" class="toggle-btn ok" data-key="' + item.key + '" data-val="OK">OK</button>' +
+        '<button type="button" class="toggle-btn nok" data-key="' + item.key + '" data-val="NOK">NOK</button>' +
+        '</span>';
+      grid.appendChild(row);
+    });
+    grid.addEventListener("click", function (evt) {
+      var btn = evt.target.closest(".toggle-btn");
+      if (!btn) return;
+      var key = btn.getAttribute("data-key"), val = btn.getAttribute("data-val");
+      checklistState[key] = val;
+      $all('.toggle-btn[data-key="' + key + '"]', grid).forEach(function (b) {
+        b.classList.toggle("active", b.getAttribute("data-val") === val);
+      });
+      updateChecklistHint();
+    });
+  }
+  function updateChecklistHint() {
+    var hint = $("#checklistHint");
+    var pending = CHECKLIST_ITEMS.filter(function (i) { return !checklistState[i.key]; }).length;
+    var nok = CHECKLIST_ITEMS.filter(function (i) { return checklistState[i.key] === "NOK"; }).length;
+    if (pending > 0) {
+      hint.textContent = pending + " item(ns) ainda não marcado(s).";
+      hint.classList.remove("warn");
+    } else if (nok > 0) {
+      hint.textContent = nok + " item(ns) marcado(s) como NOK — descreva o ocorrido em Observações.";
+      hint.classList.add("warn");
+    } else {
+      hint.textContent = "Checklist completo — tudo OK.";
+      hint.classList.remove("warn");
+    }
+  }
+
+  function currentVehicle() { return vehicles[currentVehicleId] || {}; }
+
+  function populateVehicleSelect() {
+    var sel = $("#vehicleSelect");
+    var ids = Object.keys(vehicles);
+    var prev = currentVehicleId;
+    var optionsHtml = ids.map(function (id) {
+      var v = vehicles[id];
+      return '<option value="' + esc(id) + '">' + esc((v.plate ? v.plate + " — " : "") + (v.model || id)) + '</option>';
+    }).join("");
+    sel.innerHTML = optionsHtml;
+
+    if (ids.length === 0) return;
+    if (prev && ids.indexOf(prev) !== -1) {
+      sel.value = prev;
+    } else {
+      currentVehicleId = ids[0];
+      sel.value = currentVehicleId;
+    }
+    renderVehicleFacts();
+  }
+
+  function renderVehicleFacts() {
+    var v = currentVehicle();
+    var facts = [
+      ["Placa", v.plate],
+      ["Modelo", v.model],
+      ["Ano", v.year],
+      ["Cor", v.color]
+    ];
+    var wrap = $("#vehicleFacts");
+    wrap.innerHTML = facts.map(function (f) {
+      var val = f[1];
+      return '<div class="vfact"><div class="k">' + esc(f[0]) + '</div><div class="v' + (val ? "" : " empty") + '">' + (val ? esc(val) : "não informado") + '</div></div>';
+    }).join("");
+  }
+  function fillVehicleEditForm() {
+    var v = currentVehicle();
+    $("#vPlate").value = v.plate || "";
+    $("#vModel").value = v.model || "";
+    $("#vYear").value = v.year || "";
+    $("#vColor").value = v.color || "";
+  }
+
+  function ensureVehiclesSeeded() {
+    if (!db) return;
+    db.collection("vehicles").get().then(function (snap) {
+      if (!snap.empty) return;
+      var writes = DEFAULT_VEHICLES.map(function (v) {
+        var data = { plate: v.plate, model: v.model, year: v.year, color: v.color };
+        return db.doc("vehicles/" + v.id).set(data);
+      });
+      return Promise.all(writes);
+    }).catch(function (e) { console.error("Falha ao inicializar veículos:", e); });
+  }
+
+  function computeKmTotal() {
+    var s = parseFloat($("#fKmStart").value), e = parseFloat($("#fKmEnd").value);
+    var out = $("#kmTotalReadout");
+    if (!isNaN(s) && !isNaN(e) && e >= s) out.textContent = (e - s).toLocaleString("pt-BR") + " km";
+    else out.textContent = "—";
+  }
+
+  function resetForm() {
+    $("#tripForm").reset();
+    $("#fDate").value = todayISO();
+    $("#kmTotalReadout").textContent = "—";
+    CHECKLIST_ITEMS.forEach(function (i) { checklistState[i.key] = null; });
+    $all(".toggle-btn").forEach(function (b) { b.classList.remove("active"); });
+    updateChecklistHint();
+    gauge.setValue(50, true);
+    $("#gaugeValue").textContent = "50";
+    if (signaturePad) signaturePad.clear();
+  }
+
+  /* ============ Photo inspection ============ */
+  var SLOT_PLACEHOLDER_SVG = '<svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><rect x="3" y="6" width="18" height="14" rx="2"/><circle cx="12" cy="13" r="3.2"/><path d="M8 6l1.6-2.2h4.8L16 6"/></svg>';
+
+  function renderPhotoGrid() {
+    var grid = $("#photoGrid");
+    grid.innerHTML = "";
+    PHOTO_ANGLES.forEach(function (a) {
+      var slot = document.createElement("div");
+      slot.className = "photo-slot";
+      slot.setAttribute("data-angle", a.key);
+      grid.appendChild(slot);
+      paintSlot(slot, a);
+    });
+  }
+
+  function paintSlot(slot, angle) {
+    var dataUrl = inspSlots[angle.key];
+    if (dataUrl) {
+      slot.innerHTML =
+        '<img src="' + dataUrl + '" alt="' + esc(angle.label) + '">' +
+        '<div class="slot-label">' + esc(angle.label) + '</div>' +
+        '<button type="button" class="retake">Trocar foto</button>' +
+        '<input type="file" accept="image/*" capture="environment">';
+    } else {
+      slot.innerHTML =
+        '<div class="slot-label">' + esc(angle.label) + '</div>' +
+        '<div class="placeholder">' + SLOT_PLACEHOLDER_SVG + 'Toque para adicionar foto</div>' +
+        '<input type="file" accept="image/*" capture="environment">';
+    }
+  }
+
+  function paintSlotChecking(slot, angle) {
+    slot.innerHTML =
+      '<div class="slot-label">' + esc(angle.label) + '</div>' +
+      '<div class="placeholder">Verificando foto…</div>';
+  }
+
+  function renderDamagePhotos() {
+    var wrap = $("#damagePhotos");
+    var html = "";
+    inspDamage.forEach(function (dataUrl, idx) {
+      html += '<div class="damage-thumb"><img src="' + dataUrl + '" alt="Foto de avaria"><button type="button" data-idx="' + idx + '">✕</button></div>';
+    });
+    html += '<label class="damage-add"><span class="plus">+</span><span>Adicionar foto</span><input type="file" accept="image/*" capture="environment" multiple></label>';
+    wrap.innerHTML = html;
+  }
+
+  function resetInspForm() {
+    $("#inspForm").reset();
+    $("#iDate").value = todayISO();
+    inspSlots = {};
+    inspDamage = [];
+    renderPhotoGrid();
+    renderDamagePhotos();
+  }
+
+  /* ============ Signature pad ============ */
+  function setupSignaturePad() {
+    var canvas = $("#fSignaturePad");
+    var ctx = canvas.getContext("2d");
+    var drawing = false;
+    var hasInk = false;
+    var last = null;
+    var lastW = 0, lastH = 0;
+
+    function resizeCanvas() {
+      var rect = canvas.getBoundingClientRect();
+      if (rect.width < 1 || rect.height < 1) return; // not laid out yet — try again later
+      if (Math.abs(rect.width - lastW) < 0.5 && Math.abs(rect.height - lastH) < 0.5) return; // no real change
+      lastW = rect.width; lastH = rect.height;
+      var ratio = window.devicePixelRatio || 1;
+      var prevData = hasInk ? canvas.toDataURL() : null;
+      canvas.width = Math.round(rect.width * ratio);
+      canvas.height = Math.round(rect.height * ratio);
+      ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+      ctx.lineWidth = 2.6;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+      ctx.strokeStyle = "#1C1712";
+      if (prevData) {
+        var img = new Image();
+        img.onload = function () { ctx.drawImage(img, 0, 0, rect.width, rect.height); };
+        img.src = prevData;
+      }
+    }
+
+    function pos(evt) {
+      var rect = canvas.getBoundingClientRect();
+      var cx = evt.clientX, cy = evt.clientY;
+      if (cx == null && evt.touches && evt.touches[0]) { cx = evt.touches[0].clientX; cy = evt.touches[0].clientY; }
+      if (cx == null && evt.changedTouches && evt.changedTouches[0]) { cx = evt.changedTouches[0].clientX; cy = evt.changedTouches[0].clientY; }
+      return { x: cx - rect.left, y: cy - rect.top };
+    }
+
+    function startDraw(evt) {
+      drawing = true;
+      hasInk = true;
+      last = pos(evt);
+      if (canvas.setPointerCapture && evt.pointerId != null) { try { canvas.setPointerCapture(evt.pointerId); } catch (e) {} }
+      if (evt.cancelable) evt.preventDefault();
+    }
+    function moveDraw(evt) {
+      if (!drawing) return;
+      var p = pos(evt);
+      ctx.beginPath();
+      ctx.moveTo(last.x, last.y);
+      ctx.lineTo(p.x, p.y);
+      ctx.stroke();
+      last = p;
+      if (evt.cancelable) evt.preventDefault();
+    }
+    function stopDrawing() { drawing = false; }
+
+    // Pointer Events cover mouse + touch + pen on modern browsers. As a safety net for
+    // older/quirky mobile browsers where Pointer Events misbehave, also wire plain touch
+    // events — harmless to have both, since only one event family will actually fire.
+    canvas.addEventListener("pointerdown", startDraw);
+    canvas.addEventListener("pointermove", moveDraw);
+    canvas.addEventListener("pointerup", stopDrawing);
+    canvas.addEventListener("pointerleave", stopDrawing);
+    canvas.addEventListener("pointercancel", stopDrawing);
+
+    canvas.addEventListener("touchstart", startDraw, { passive: false });
+    canvas.addEventListener("touchmove", moveDraw, { passive: false });
+    canvas.addEventListener("touchend", stopDrawing);
+    canvas.addEventListener("touchcancel", stopDrawing);
+
+    // Mouse fallback for browsers with neither Pointer nor Touch events wired up right.
+    canvas.addEventListener("mousedown", startDraw);
+    canvas.addEventListener("mousemove", moveDraw);
+    window.addEventListener("mouseup", stopDrawing);
+
+    $("#fSignatureClear").addEventListener("click", function () {
+      var rect = canvas.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width, rect.height);
+      hasInk = false;
+      $("#signatureError").textContent = "";
+    });
+
+    window.addEventListener("resize", resizeCanvas);
+    window.addEventListener("orientationchange", function () { setTimeout(resizeCanvas, 60); });
+    // Fonts finishing loading (or any other late layout shift) can change the box size
+    // after the very first paint without firing a "resize" event — ResizeObserver catches
+    // that reliably; the timeouts below are a fallback for browsers without it.
+    if (typeof ResizeObserver !== "undefined") {
+      new ResizeObserver(resizeCanvas).observe(canvas.parentElement || canvas);
+    } else {
+      setTimeout(resizeCanvas, 250);
+      setTimeout(resizeCanvas, 800);
+    }
+    resizeCanvas();
+
+    return {
+      hasSignature: function () { return hasInk; },
+      getDataUrl: function () { return canvas.toDataURL("image/png"); },
+      clear: function () {
+        var rect = canvas.getBoundingClientRect();
+        ctx.clearRect(0, 0, rect.width, rect.height);
+        hasInk = false;
+      }
+    };
+  }
+
+  function init() {
+    $("#fDate").value = todayISO();
+    buildChecklistUI();
+    updateChecklistHint();
+    gauge = createGauge($("#gaugeMount"), {
+      value: 50,
+      onChange: function (v) { $("#gaugeValue").textContent = Math.round(v); }
+    });
+    signaturePad = setupSignaturePad();
+
+    $("#fKmStart").addEventListener("input", computeKmTotal);
+    $("#fKmEnd").addEventListener("input", computeKmTotal);
+
+    $("#vehicleEditToggle").addEventListener("click", function () {
+      fillVehicleEditForm();
+      $("#vehicleEditForm").classList.add("show");
+    });
+    $("#vehicleCancel").addEventListener("click", function () {
+      $("#vehicleEditForm").classList.remove("show");
+    });
+    $("#vehicleEditForm").addEventListener("submit", function (evt) {
+      evt.preventDefault();
+      if (!db || !currentVehicleId) { toast("Sem conexão com o banco de dados."); return; }
+      var data = {
+        plate: $("#vPlate").value.trim(),
+        model: $("#vModel").value.trim(),
+        year: $("#vYear").value.trim(),
+        color: $("#vColor").value.trim()
+      };
+      db.doc("vehicles/" + currentVehicleId).set(data).then(function () {
+        toast("Dados do veículo salvos.");
+        $("#vehicleEditForm").classList.remove("show");
+      }).catch(function (e) { toast("Erro ao salvar: " + e.message); });
+    });
+
+    $("#tripForm").addEventListener("submit", function (evt) {
+      evt.preventDefault();
+      var errEl = $("#formError");
+      errEl.textContent = "";
+
+      var pending = CHECKLIST_ITEMS.filter(function (i) { return !checklistState[i.key]; });
+      if (pending.length > 0) {
+        errEl.textContent = "Marque OK ou NOK em todos os itens do checklist.";
+        return;
+      }
+      if (!$("#fConfirm").checked) {
+        errEl.textContent = "Confirme a veracidade das informações para registrar.";
+        return;
+      }
+
+      if (!currentVehicleId) {
+        errEl.textContent = "Não foi possível identificar o veículo selecionado.";
+        return;
+      }
+
+      $("#signatureError").textContent = "";
+      if (!signaturePad.hasSignature()) {
+        $("#signatureError").textContent = "Assine no campo acima antes de registrar a viagem.";
+        return;
+      }
+
+      var payload = {
+        employee: $("#fEmployee").value.trim(),
+        vehicleId: currentVehicleId,
+        vehicleLabel: (currentVehicle().plate || "") + (currentVehicle().model ? " — " + currentVehicle().model : ""),
+        date: $("#fDate").value,
+        purpose: $("#fPurpose").value.trim(),
+        timeOut: $("#fTimeOut").value,
+        timeIn: $("#fTimeIn").value,
+        origin: $("#fOrigin").value.trim(),
+        destination: $("#fDestination").value.trim(),
+        kmStart: $("#fKmStart").value !== "" ? Number($("#fKmStart").value) : null,
+        kmEnd: $("#fKmEnd").value !== "" ? Number($("#fKmEnd").value) : null,
+        fuelPercent: gauge.getValue(),
+        checklist: Object.assign({}, checklistState),
+        notes: $("#fNotes").value.trim(),
+        signature: signaturePad.getDataUrl(),
+        createdAt: new Date().toISOString()
+      };
+
+      if (!db) {
+        toast("Este registro não foi salvo — configure o banco de dados (firebaseConfig) para salvar de verdade.");
+        resetForm();
+        return;
+      }
+      var btn = $("#submitBtn");
+      btn.disabled = true;
+      db.collection("trips").add(payload).then(function () {
+        toast("✓ Viagem registrada com sucesso. Boa viagem!");
+        resetForm();
+      }).catch(function (e) {
+        errEl.textContent = "Erro ao salvar: " + e.message;
+      }).finally(function () { btn.disabled = false; });
+    });
+
+    /* ---- photo inspection wiring ---- */
+    $("#iDate").value = todayISO();
+    renderPhotoGrid();
+    renderDamagePhotos();
+
+    $("#photoGrid").addEventListener("click", function (evt) {
+      var slotEl = evt.target.closest ? evt.target.closest(".photo-slot") : null;
+      if (!slotEl) return;
+      var input = slotEl.querySelector("input[type=file]");
+      if (input) input.click();
+    });
+    $("#photoGrid").addEventListener("change", function (evt) {
+      var input = evt.target;
+      if (!input || input.tagName !== "INPUT" || input.type !== "file") return;
+      var slotEl = input.closest(".photo-slot");
+      var angleKey = slotEl && slotEl.getAttribute("data-angle");
+      var angle = PHOTO_ANGLES.filter(function (a) { return a.key === angleKey; })[0];
+      var file = input.files && input.files[0];
+      if (!file || !angle) return;
+
+      function accept() {
+        return compressImage(file, 1600, 380000).then(function (dataUrl) {
+          inspSlots[angle.key] = dataUrl;
+          paintSlot(slotEl, angle);
+        });
+      }
+
+      paintSlotChecking(slotEl, angle);
+      loadImageFromFile(file).then(function (img) {
+        return looksLikeVehicle(img).then(function (isVehicle) {
+          if (!isVehicle) {
+            toast("Essa foto não parece mostrar um veículo — tire novamente enquadrando o carro.");
+            paintSlot(slotEl, angle); // back to the empty/previous state, nothing saved
+            return;
+          }
+          return accept();
+        });
+      }).catch(function (e) {
+        // If the AI check itself fails (e.g. no internet to load the model), don't
+        // block the inspection — just accept the photo like before.
+        console.error("Verificação de veículo indisponível:", e);
+        return accept();
+      }).catch(function () {
+        toast("Não foi possível processar essa foto.");
+        paintSlot(slotEl, angle);
+      });
+    });
+
+    $("#damagePhotos").addEventListener("click", function (evt) {
+      var btn = evt.target.closest ? evt.target.closest("button[data-idx]") : null;
+      if (!btn) return;
+      inspDamage.splice(Number(btn.getAttribute("data-idx")), 1);
+      renderDamagePhotos();
+    });
+    $("#damagePhotos").addEventListener("change", function (evt) {
+      var input = evt.target;
+      if (!input || input.tagName !== "INPUT" || input.type !== "file") return;
+      var files = Array.prototype.slice.call(input.files || []);
+      if (files.length === 0) return;
+      Promise.all(files.map(function (f) { return compressImage(f, 1600, 380000); })).then(function (urls) {
+        urls.forEach(function (u) { inspDamage.push(u); });
+        renderDamagePhotos();
+      }).catch(function () { toast("Não foi possível processar uma das fotos."); });
+    });
+
+    $("#inspForm").addEventListener("submit", function (evt) {
+      evt.preventDefault();
+      var errEl = $("#inspFormError");
+      errEl.textContent = "";
+
+      var missing = PHOTO_ANGLES.filter(function (a) { return !inspSlots[a.key]; });
+      if (missing.length > 0) {
+        errEl.textContent = "Adicione as 5 fotos do veículo (frente, traseira, as duas laterais e o painel).";
+        return;
+      }
+      if (!currentVehicleId) {
+        errEl.textContent = "Não foi possível identificar o veículo selecionado.";
+        return;
+      }
+
+      var responsible = $("#iResponsible").value.trim();
+      var date = $("#iDate").value;
+      var damageNote = $("#iDamageNote").value.trim();
+      var damageCount = inspDamage.length;
+      var slotsSnapshot = Object.assign({}, inspSlots);
+      var damageSnapshot = inspDamage.slice();
+      var vehicleId = currentVehicleId;
+      var vehicleLabel = (currentVehicle().plate || "") + (currentVehicle().model ? " — " + currentVehicle().model : "");
+
+      var btn = $("#inspSubmitBtn");
+      btn.disabled = true;
+
+      makeThumb(slotsSnapshot.front, 160).then(function (thumb) {
+        var meta = {
+          responsible: responsible,
+          vehicleId: vehicleId,
+          vehicleLabel: vehicleLabel,
+          date: date,
+          damageNote: damageNote,
+          hasDamage: !!(damageNote || damageCount > 0),
+          damagePhotoCount: damageCount,
+          thumb: thumb,
+          createdAt: new Date().toISOString()
+        };
+
+        if (!db) {
+          toast("Esta vistoria não foi salva — configure o banco de dados (firebaseConfig) para salvar de verdade.");
+          resetInspForm();
+          btn.disabled = false;
+          return;
+        }
+
+        db.collection("inspections").add(meta).then(function (ref) {
+          var photosCol = ref.collection("photos");
+          var writes = PHOTO_ANGLES.map(function (a) {
+            return photosCol.add({ angle: a.key, label: a.label, data: slotsSnapshot[a.key] });
+          });
+          damageSnapshot.forEach(function (dataUrl, idx) {
+            writes.push(photosCol.add({ angle: "damage", label: "Avaria " + (idx + 1), data: dataUrl }));
+          });
+          return Promise.all(writes);
+        }).then(function () {
+          toast("✓ Vistoria registrada com sucesso.");
+          resetInspForm();
+        }).catch(function (e) {
+          errEl.textContent = "Erro ao salvar: " + e.message;
+        }).finally(function () { btn.disabled = false; });
+      });
+    });
+
+    $("#vehicleSelect").addEventListener("change", function () {
+      currentVehicleId = $("#vehicleSelect").value;
+      renderVehicleFacts();
+    });
+
+    initAuthGate();
+  }
+
+  function startApp() {
+    if (appStarted) return;
+    appStarted = true;
+    if (!FIREBASE_CONFIGURED || !db) {
+      showBanner("Este Diário ainda não foi configurado. Preencha o firebaseConfig no topo do arquivo HTML com os dados do seu projeto Firebase.", true);
+      return;
+    }
+    hideBanner();
+
+    db.collection("vehicles").onSnapshot(function (snap) {
+      var map = {};
+      snap.docs.forEach(function (d) { map[d.id] = d.data(); });
+      vehicles = map;
+      vehiclesLoaded = true;
+      populateVehicleSelect();
+      if (Object.keys(vehicles).length === 0) ensureVehiclesSeeded();
+    }, function (e) {
+      showBanner("Não foi possível carregar os veículos: " + e.message, true);
+    });
+
+  }
+
+  document.addEventListener("DOMContentLoaded", init);
+})();
+</script>
+</body>
+</html>
